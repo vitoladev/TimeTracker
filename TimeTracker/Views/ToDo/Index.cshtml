@@ -1,0 +1,70 @@
+﻿@{
+    ViewData["Title"] = "ToDo List";
+}
+@model IEnumerable<TimeTracker.Models.ToDoItemDTO>
+<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
+
+<h1>Tasks</h1>
+
+<p>
+    <a class="btn btn-success" asp-action="Create">Create New Task</a>
+</p>
+<table class="table bg-dark text-white table-bordered">
+    <thead class="bg-primary">
+        <tr>
+            <th>
+                Task
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Priority)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ElapsedTime)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>
+                @if ((int)item.Status == 3)
+                {
+
+                    <a href="/ToDo/Details/@item.Id">
+                        <del class="text-success">@Html.DisplayFor(modelItem => item.Title)</del>
+                    </a>
+
+                }
+                else
+                {
+                    <a href="/ToDo/Details/@item.Id">
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </a>
+                }
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Priority)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ElapsedTime)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id" id="edit" class="fas fa-edit text-white"></a>
+                <a asp-action="Delete" asp-route-id="@item.Id" id="delete" class="fas fa-trash text-white"></a>
+                @if ((int)item.Status != 3)
+                {
+                    <a asp-action="Finish" asp-route-id="@item.Id" id="finish" class="fas fa-check-circle text-white"></a>
+                }
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>

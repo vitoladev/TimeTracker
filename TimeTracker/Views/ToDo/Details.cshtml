@@ -1,0 +1,120 @@
+﻿@model TimeTracker.Models.ToDoItem
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h1>@Html.DisplayFor(model => model.Title)</h1>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-12">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class="col-sm-12">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+        <dt class="col-sm-12">
+            @Html.DisplayNameFor(model => model.Priority)
+        </dt>
+        <dd class="col-sm-12">
+            @Html.DisplayFor(model => model.Priority)
+        </dd>
+        <dt class="col-sm-12">
+            @Html.DisplayNameFor(model => model.Status)
+        </dt>
+        <dd class="col-sm-12" id="status">
+            @Html.DisplayFor(model => model.Status)
+        </dd>
+    </dl>
+</div>
+<div class="bg-dark mt-5 mb-5 p-5">
+    <h1 class="display-1 text-white text-center">Task's elapsed time: <span id="time" class="text-center">@Model.ElapsedTime</span></h1>
+</div>
+<div class="text-center">
+    <button class="btn btn-success btn-lg" id="startBtn">Start</button>
+    <button class="btn btn-danger btn-lg" id="stopBtn">Stop</button>
+</div>
+
+<div class="bg-dark mt-5 p-3">
+    <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+    <a class="btn btn-dark" asp-action="Index">Back to List</a>
+</div>
+
+<script>
+    const startBtn = document.querySelector("#startBtn");
+    const stopBtn = document.querySelector("#stopBtn");
+    const time = document.querySelector("#time");
+    const status = document.querySelector("#status");
+
+    function postRequest(url, data) {
+        return fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: new Headers({
+                'Content-Type': 'application/json'
+            }),
+        })
+    }
+
+    let running = false;
+    let startTime = @Model.ElapsedTime.TotalSeconds;
+    let seconds = @Model.ElapsedTime.TotalSeconds;
+    let finalTime;
+    console.log("seconds ->", seconds);
+    let timer;
+
+    let updateTimeRequest = async (seconds) => {
+        finalTime = seconds - startTime;
+        let updateTimeData = {
+            id: @Model.Id,
+            seconds: finalTime,
+        }
+        console.log(updateTimeData);
+        await postRequest('/ToDo/UpdateTime', updateTimeData);
+    }
+    function iniciaRelogio() {
+        timer = setInterval(function () {
+            seconds++;
+            time.innerHTML = `${criaHoraDosSegundos(seconds)}`;
+        }, 1000)
+    }
+
+
+
+    startBtn.addEventListener("click", (e) => {
+
+        status.innerHTML = "Ongoing";
+        if (!running) {
+            fetch('/ToDo/Start/@Model.Id');
+            running = true;
+            iniciaRelogio();
+        }
+    })
+
+    stopBtn.addEventListener("click", async (e) => {
+        if (running) {
+            running = false;
+            clearInterval(timer);
+            fetch('/ToDo/Stop/@Model.Id');
+            await updateTimeRequest(seconds);
+        }
+        status.innerHTML = "Stopped";
+    })
+
+    stopBtn.addEventListener("unload", async (e) => {
+        await updateTimeRequest(seconds);
+    })
+
+    function criaHoraDosSegundos(segundos) {
+        const data = new Date(segundos * 1000);
+        return data.toLocaleTimeString('pt-BR', {
+            hour12: false,
+            timeZone: 'UTC'
+        })
+    }
+
+
+</script>
